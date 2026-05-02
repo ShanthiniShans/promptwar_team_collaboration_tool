@@ -1,18 +1,21 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyPlaceholder",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "placeholder.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "placeholder-project",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "placeholder.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:placeholder"
+  apiKey: "AIzaSyC5lh7EqaPZ0A8bkx61TsfHMcGXd_-ppAg",
+  authDomain: "geometric-ivy-446517-q0-a1a40.firebaseapp.com",
+  projectId: "geometric-ivy-446517-q0-a1a40",
+  storageBucket: "geometric-ivy-446517-q0-a1a40.firebasestorage.app",
+  messagingSenderId: "429171109967",
+  appId: "1:429171109967:web:b3a8454530aa276dc3ba3a",
+  measurementId: "G-3YG9TC80PP"
 };
 
 const app = initializeApp(firebaseConfig);
-
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
-export const db = getFirestore(app);
+export default app;

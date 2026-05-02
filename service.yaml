@@ -2,15 +2,17 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: nexus-ai
+  labels:
+    cloud.googleapis.com/location: us-central1
 spec:
   template:
     spec:
       containers:
-      - image: gcr.io/your-project-id/nexus-ai # Replace with your image registry
+      - image: nexus-ai
         ports:
         - containerPort: 8080
         env:
         - name: GOOGLE_CLOUD_PROJECT
-          value: "your-project-id" # Replace
+          value: "geometric-ivy-446517-q0-a1a40"
         - name: GOOGLE_CLOUD_LOCATION
-          value: "us-central1" # Replace
+          value: "us-central1"

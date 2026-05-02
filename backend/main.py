@@ -5,9 +5,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import vertexai
-from vertexai.generative_models import GenerativeModel
+import base64
+import io
+import csv
+from fastapi.responses import StreamingResponse
+from vertexai.generative_models import GenerativeModel, Part
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, firestore
 
 # Initialize Firebase Admin
 # When running on Cloud Run, default credentials are used.
@@ -72,6 +76,77 @@ async def generate_tasks(prompt_request: TaskPrompt):
         tasks = json.loads(raw_text.strip())
         return {"tasks": tasks}
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class VisionTaskPrompt(BaseModel):
+    prompt: str
+    image_base64: str
+    mime_type: str
+
+@app.post("/api/generate-tasks-vision")
+async def generate_tasks_vision(prompt_request: VisionTaskPrompt):
+    try:
+        model = GenerativeModel("gemini-1.5-pro")
+        
+        system_instruction = """
+        You are an AI task generator for a team collaboration tool.
+        Analyze the provided image (e.g., whiteboard notes, diagrams) and the user prompt.
+        Extract and generate exactly 5 distinct, actionable tasks based on the image content.
+        Return the result as a raw JSON array of objects.
+        Each object must have:
+        - "title": A short, clear task title (string).
+        - "description": A brief description of the task (string).
+        - "status": "todo" (string).
+        Do not include markdown formatting like ```json ... ```. Just the raw JSON.
+        """
+        
+        image_data = base64.b64decode(prompt_request.image_base64)
+        image_part = Part.from_data(data=image_data, mime_type=prompt_request.mime_type)
+        
+        response = model.generate_content(
+            [system_instruction, image_part, f"User Prompt: {prompt_request.prompt}"]
+        )
+        
+        raw_text = response.text.strip()
+        if raw_text.startswith("```json"):
+            raw_text = raw_text[7:]
+        if raw_text.startswith("```"):
+            raw_text = raw_text[3:]
+        if raw_text.endswith("```"):
+            raw_text = raw_text[:-3]
+            
+        tasks = json.loads(raw_text.strip())
+        return {"tasks": tasks}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/export-tasks")
+async def export_tasks():
+    try:
+        db = firestore.client()
+        tasks_ref = db.collection("tasks").order_by("createdAt", direction=firestore.Query.DESCENDING).stream()
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Title", "Description", "Status", "AI Generated"])
+        
+        for task in tasks_ref:
+            task_dict = task.to_dict()
+            writer.writerow([
+                task_dict.get("title", ""),
+                task_dict.get("description", ""),
+                task_dict.get("status", ""),
+                "Yes" if task_dict.get("isAI") else "No"
+            ])
+            
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=nexus_tasks.csv"}
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -27,8 +27,5 @@ COPY --from=build-stage /app/frontend/dist ./frontend/dist
 # Expose port (Cloud Run uses 8080 by default)
 EXPOSE 8080
 
-# Environment variables
-ENV PORT=8080
-
 # Run uvicorn
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
