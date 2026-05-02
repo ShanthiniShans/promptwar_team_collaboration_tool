@@ -4,6 +4,13 @@ import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, limit 
 import { motion } from 'framer-motion';
 import { Send } from 'lucide-react';
 
+/**
+ * TeamChat Component.
+ * Real-time chat interface connected to Firestore.
+ * Allows authenticated users to send and receive messages.
+ *
+ * @returns {JSX.Element} The rendered TeamChat component.
+ */
 export default function TeamChat() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -24,6 +31,10 @@ export default function TeamChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  /**
+   * Handles submitting a new chat message to Firestore.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !auth.currentUser) return;
@@ -42,10 +53,15 @@ export default function TeamChat() {
   return (
     <div className="flex flex-col h-full bg-surface rounded-2xl border border-slate-700 overflow-hidden">
       <div className="p-4 border-b border-slate-700 bg-slate-800/50 backdrop-blur-md">
-        <h3 className="font-semibold text-lg">Team Chat</h3>
+        <h3 className="font-semibold text-lg" id="chat-heading">Team Chat</h3>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+      <div 
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-3"
+        role="log"
+        aria-labelledby="chat-heading"
+        aria-live="polite"
+      >
         {messages.map((msg) => {
           const isMe = msg.uid === auth.currentUser?.uid;
           return (
@@ -70,7 +86,9 @@ export default function TeamChat() {
       </div>
 
       <form onSubmit={sendMessage} className="p-3 border-t border-slate-700 flex gap-2">
+        <label htmlFor="chat-input" className="sr-only">Type a message</label>
         <input
+          id="chat-input"
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
@@ -82,8 +100,9 @@ export default function TeamChat() {
           type="submit" 
           disabled={!newMessage.trim() || !auth.currentUser}
           className="bg-primary hover:bg-blue-600 text-white p-2 rounded-xl transition-colors disabled:opacity-50 disabled:hover:bg-primary flex items-center justify-center w-10 h-10"
+          aria-label="Send message"
         >
-          <Send size={18} />
+          <Send size={18} aria-hidden="true" />
         </button>
       </form>
     </div>

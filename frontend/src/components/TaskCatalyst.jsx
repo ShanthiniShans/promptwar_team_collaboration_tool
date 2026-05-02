@@ -4,6 +4,13 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Sparkles, Loader2, ImagePlus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * TaskCatalyst Component.
+ * Provides an interface for users to generate tasks using Vertex AI.
+ * Supports text prompts and multi-modal image uploads.
+ *
+ * @returns {JSX.Element} The rendered TaskCatalyst component.
+ */
 export default function TaskCatalyst() {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,6 +19,10 @@ export default function TaskCatalyst() {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
+  /**
+   * Handles image selection and generates a Base64 preview.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The file input change event.
+   */
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -24,12 +35,19 @@ export default function TaskCatalyst() {
     }
   };
 
+  /**
+   * Clears the currently selected image.
+   */
   const clearImage = () => {
     setImageFile(null);
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  /**
+   * Submits the prompt/image to the backend to generate tasks, then saves them to Firestore.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const generateTasks = async (e) => {
     e.preventDefault();
     if (!prompt.trim() && !imageFile) return;
@@ -97,7 +115,7 @@ export default function TaskCatalyst() {
       
       <div className="flex items-center gap-2 mb-4 relative z-10">
         <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-300">
-          <Sparkles size={24} />
+          <Sparkles size={24} aria-hidden="true" />
         </div>
         <h3 className="font-semibold text-xl text-indigo-100">Task Catalyst</h3>
       </div>
@@ -107,7 +125,9 @@ export default function TaskCatalyst() {
       </p>
 
       <form onSubmit={generateTasks} className="flex flex-col gap-3 flex-1 relative z-10">
+        <label htmlFor="prompt-input" className="sr-only">Describe your project</label>
         <textarea
+          id="prompt-input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="e.g., We need to launch a new marketing campaign..."
@@ -127,14 +147,15 @@ export default function TaskCatalyst() {
                 type="button" 
                 onClick={clearImage}
                 className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full p-1 hover:bg-red-500 transition-colors border border-slate-600"
+                aria-label="Remove image"
               >
-                <X size={14} />
+                <X size={14} aria-hidden="true" />
               </button>
             </motion.div>
           )}
         </AnimatePresence>
         
-        {error && <div className="text-red-400 text-sm">{error}</div>}
+        {error && <div className="text-red-400 text-sm" role="alert">{error}</div>}
 
         <div className="flex gap-2">
           <button
@@ -142,31 +163,35 @@ export default function TaskCatalyst() {
             onClick={() => fileInputRef.current?.click()}
             className="bg-indigo-900/50 hover:bg-indigo-800 border border-indigo-500/30 text-indigo-300 p-3 rounded-xl transition-colors flex items-center justify-center"
             title="Upload Image"
+            aria-label="Upload an image for analysis"
           >
-            <ImagePlus size={20} />
+            <ImagePlus size={20} aria-hidden="true" />
           </button>
           <input 
             type="file" 
+            id="image-upload"
             ref={fileInputRef} 
             onChange={handleImageUpload} 
             accept="image/*" 
             className="hidden" 
+            aria-hidden="true"
           />
           
           <button
             type="submit"
             disabled={loading || (!prompt.trim() && !imageFile)}
             className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:hover:bg-indigo-600 flex items-center justify-center gap-2"
+            aria-label="Generate AI Tasks"
           >
             {loading ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
                 Generating...
               </>
             ) : (
               <>
                 Generate Tasks
-                <Sparkles size={16} />
+                <Sparkles size={16} aria-hidden="true" />
               </>
             )}
           </button>

@@ -4,3 +4,5 @@ firebase-admin
 google-cloud-aiplatform
 pydantic
 python-dotenv
+pytest
+httpx
