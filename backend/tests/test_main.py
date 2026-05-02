@@ -1,3 +1,14 @@
+import pytest
+from unittest.mock import MagicMock, patch
+
+@pytest.fixture(autouse=True)
+def mock_vertex_ai():
+    with patch("vertexai.generative_models.GenerativeModel.generate_content") as mock_method:
+        mock_response = MagicMock()
+        mock_response.text = '{"tasks": [{"id": 1, "text": "Mock Task"}]}'
+        mock_method.return_value = mock_response
+        yield mock_method
+        
 import json
 import pytest
 from fastapi.testclient import TestClient
